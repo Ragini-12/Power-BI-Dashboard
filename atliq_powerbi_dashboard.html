@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AtliQ Hotels — Power BI Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;600;700&family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --pbi-bg: #F3F2F1;
+  --pbi-canvas: #FFFFFF;
+  --pbi-blue: #0078D4;
+  --pbi-blue2: #106EBE;
+  --pbi-blue-light: #EFF6FC;
+  --pbi-blue-pale: #DEECF9;
+  --pbi-navy: #003B6F;
+  --pbi-teal: #008272;
+  --pbi-teal-light: #E6F4F2;
+  --pbi-green: #107C10;
+  --pbi-green-light: #E5F2E5;
+  --pbi-red: #D13438;
+  --pbi-red-light: #FDE7E9;
+  --pbi-orange: #CA5010;
+  --pbi-orange-light: #FAF0E6;
+  --pbi-yellow: #FFB900;
+  --pbi-yellow-light: #FFF4CE;
+  --pbi-purple: #5C2D91;
+  --pbi-purple-light: #F0EBF8;
+  --pbi-text: #201F1E;
+  --pbi-text2: #605E5C;
+  --pbi-text3: #A19F9D;
+  --pbi-border: #E1DFDD;
+  --pbi-border2: #C8C6C4;
+  --pbi-slicer: #F3F2F1;
+  --pbi-slicer-active: #0078D4;
+  --pbi-shadow: 0 1px 4px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04);
+  --pbi-shadow-hover: 0 4px 16px rgba(0,0,0,0.14);
+  --pbi-radius: 4px;
+  --pbi-radius2: 8px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 13px; }
+
+body {
+  background: var(--pbi-bg);
+  color: var(--pbi-text);
+  font-family: 'Outfit', 'Segoe UI', sans-serif;
+  min-height: 100vh;
+}
+
+/* ── HEADER ─────────────────────────────────────────── */
+.pbi-header {
+  background: var(--pbi-navy);
+  height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+.pbi-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pbi-logo-icon {
+  width: 28px;
+  height: 28px;
+}
+.pbi-logo-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -0.2px;
+}
+.pbi-header-divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(255,255,255,0.2);
+}
+.pbi-report-name {
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+  font-weight: 400;
+}
+.pbi-header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pbi-header-badge {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.8);
+  font-family: 'JetBrains Mono', monospace;
+}
+.pbi-share-btn {
+  background: var(--pbi-blue);
+  border: none;
+  border-radius: var(--pbi-radius);
+  padding: 5px 14px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+}
+
+/* ── PAGE TABS ──────────────────────────────────────── */
+.pbi-page-tabs {
+  background: #fff;
+  border-bottom: 1px solid var(--pbi-border);
+  display: flex;
+  padding: 0 20px;
+  gap: 0;
+}
+.pbi-page-tab {
+  padding: 10px 18px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--pbi-text2);
+  border: none;
+  background: transparent;
+  border-bottom: 3px solid transparent;
+  transition: all 0.15s;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: 0.01em;
+  position: relative;
+}
+.pbi-page-tab.active {
+  color: var(--pbi-blue);
+  border-bottom-color: var(--pbi-blue);
+  font-weight: 600;
+}
+.pbi-page-tab:hover:not(.active) {
+  color: var(--pbi-text);
+  background: var(--pbi-bg);
+}
+
+/* ── CANVAS ─────────────────────────────────────────── */
+.pbi-canvas {
+  padding: 16px 20px 24px;
+  display: none;
+}
+.pbi-canvas.active { display: block; }
+
+/* ── FILTER PANE (top slicer row) ───────────────────── */
+.slicer-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.slicer-card {
+  background: #fff;
+  border: 1px solid var(--pbi-border);
+  border-radius: var(--pbi-radius);
+  padding: 10px 14px;
+  box-shadow: var(--pbi-shadow);
+  min-width: 180px;
+}
+.slicer-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--pbi-text3);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.slicer-title::before {
+  content: '';
+  width: 3px;
+  height: 10px;
+  background: var(--pbi-blue);
+  border-radius: 2px;
+  display: inline-block;
+}
+.slicer-chips {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.slicer-chip {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--pbi-border2);
+  background: #fff;
+  color: var(--pbi-text2);
+  transition: all 0.12s;
+  font-family: 'Outfit', sans-serif;
+}
+.slicer-chip.active {
+  background: var(--pbi-blue);
+  border-color: var(--pbi-blue);
+  color: #fff;
+}
+.slicer-chip:hover:not(.active) {
+  border-color: var(--pbi-blue);
+  color: var(--pbi-blue);
+}
+.pbi-refresh-info {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--pbi-text3);
+  align-self: flex-end;
+  padding-bottom: 2px;
+}
+
+/* ── LAYOUT GRID ────────────────────────────────────── */
+.pbi-grid { display: grid; gap: 12px; margin-bottom: 12px; }
+.g-kpi5  { grid-template-columns: repeat(5, 1fr); }
+.g-kpi4  { grid-template-columns: repeat(4, 1fr); }
+.g-kpi3  { grid-template-columns: repeat(3, 1fr); }
+.g-2     { grid-template-columns: 1fr 1fr; }
+.g-3     { grid-template-columns: 1fr 1fr 1fr; }
+.g-32    { grid-template-columns: 3fr 2fr; }
+.g-23    { grid-template-columns: 2fr 3fr; }
+.g-12    { grid-template-columns: 1fr 2fr; }
+.g-21    { grid-template-columns: 2fr 1fr; }
+.col2    { grid-column: span 2; }
+.col3    { grid-column: span 3; }
+
+/* ── VISUAL CARD ────────────────────────────────────── */
+.vis-card {
+  background: #fff;
+  border: 1px solid var(--pbi-border);
+  border-radius: var(--pbi-radius2);
+  padding: 14px 16px 16px;
+  box-shadow: var(--pbi-shadow);
+  transition: box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.vis-card:hover { box-shadow: var(--pbi-shadow-hover); }
+.vis-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: var(--pbi-radius2) var(--pbi-radius2) 0 0;
+}
+.vis-card.accent-blue::before   { background: var(--pbi-blue); }
+.vis-card.accent-teal::before   { background: var(--pbi-teal); }
+.vis-card.accent-green::before  { background: var(--pbi-green); }
+.vis-card.accent-red::before    { background: var(--pbi-red); }
+.vis-card.accent-orange::before { background: var(--pbi-orange); }
+.vis-card.accent-yellow::before { background: var(--pbi-yellow); }
+.vis-card.accent-purple::before { background: var(--pbi-purple); }
+.vis-card.accent-navy::before   { background: var(--pbi-navy); }
+
+.vis-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--pbi-text2);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.vis-title-more {
+  font-size: 10px;
+  color: var(--pbi-blue);
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+/* ── KPI CARD ───────────────────────────────────────── */
+.kpi-inner { }
+.kpi-value {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -1px;
+  margin-bottom: 4px;
+  font-family: 'Outfit', sans-serif;
+}
+.kpi-label {
+  font-size: 11px;
+  color: var(--pbi-text2);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.kpi-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 3px;
+}
+.kpi-delta.up   { background: var(--pbi-green-light); color: var(--pbi-green); }
+.kpi-delta.down { background: var(--pbi-red-light);   color: var(--pbi-red); }
+.kpi-delta.neu  { background: var(--pbi-blue-light);  color: var(--pbi-blue); }
+.kpi-delta.warn { background: var(--pbi-yellow-light);color: var(--pbi-orange); }
+.kpi-subtext { font-size: 10px; color: var(--pbi-text3); margin-top: 4px; }
+.kpi-bar-track { height: 4px; background: var(--pbi-border); border-radius: 4px; margin-top: 10px; overflow: hidden; }
+.kpi-bar-fill  { height: 100%; border-radius: 4px; transition: width 1.2s cubic-bezier(.4,0,.2,1); }
+
+/* ── INLINE HORIZONTAL BAR ──────────────────────────── */
+.hbar-list { display: flex; flex-direction: column; gap: 9px; }
+.hbar-row  { display: flex; align-items: center; gap: 8px; }
+.hbar-name { font-size: 11.5px; color: var(--pbi-text); min-width: 100px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hbar-track { flex: 1; height: 9px; background: var(--pbi-bg); border-radius: 3px; overflow: hidden; }
+.hbar-fill  { height: 100%; border-radius: 3px; transition: width 1s cubic-bezier(.4,0,.2,1); }
+.hbar-val   { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--pbi-text2); min-width: 52px; text-align: right; }
+
+/* ── STATUS BAND (like PBI matrix row) ──────────────── */
+.status-band { display: flex; border-radius: var(--pbi-radius); overflow: hidden; height: 24px; margin-bottom: 10px; }
+.status-segment { display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; transition: flex 0.8s cubic-bezier(.4,0,.2,1); }
+
+/* ── TABLE ──────────────────────────────────────────── */
+.pbi-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+.pbi-table th {
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pbi-text3);
+  border-bottom: 2px solid var(--pbi-border);
+  white-space: nowrap;
+}
+.pbi-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--pbi-bg);
+  color: var(--pbi-text);
+  vertical-align: middle;
+}
+.pbi-table tr:last-child td { border-bottom: none; }
+.pbi-table tbody tr:hover td { background: var(--pbi-blue-light); }
+.pbi-table .num { font-family: 'JetBrains Mono', monospace; text-align: right; }
+.rank-num { font-weight: 700; color: var(--pbi-blue); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+/* ── BADGES ─────────────────────────────────────────── */
+.badge { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 3px; font-size: 10px; font-weight: 700; }
+.badge-lux  { background: var(--pbi-purple-light); color: var(--pbi-purple); }
+.badge-biz  { background: var(--pbi-blue-light);   color: var(--pbi-blue2); }
+.badge-top  { background: var(--pbi-green-light);  color: var(--pbi-green); }
+.badge-avg  { background: var(--pbi-yellow-light); color: var(--pbi-orange); }
+.badge-low  { background: var(--pbi-red-light);    color: var(--pbi-red); }
+
+/* ── DONUT ──────────────────────────────────────────── */
+.donut-wrap { display: flex; align-items: center; gap: 18px; }
+.donut-legend { display: flex; flex-direction: column; gap: 7px; flex: 1; }
+.legend-row { display: flex; align-items: center; gap: 7px; }
+.legend-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.legend-text { font-size: 11.5px; color: var(--pbi-text); flex: 1; }
+.legend-pct { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--pbi-text2); font-weight: 500; }
+
+/* ── SCROLLBAR ──────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--pbi-bg); }
+::-webkit-scrollbar-thumb { background: var(--pbi-border2); border-radius: 4px; }
+
+/* ── ANIMATIONS ─────────────────────────────────────── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.vis-card { animation: fadeUp 0.4s ease both; }
+.vis-card:nth-child(1) { animation-delay: 0.04s; }
+.vis-card:nth-child(2) { animation-delay: 0.08s; }
+.vis-card:nth-child(3) { animation-delay: 0.12s; }
+.vis-card:nth-child(4) { animation-delay: 0.16s; }
+.vis-card:nth-child(5) { animation-delay: 0.20s; }
+
+/* ── INSIGHT CALLOUT ────────────────────────────────── */
+.insight-strip {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+.insight-item {
+  flex: 1;
+  background: var(--pbi-bg);
+  border-left: 3px solid var(--pbi-blue);
+  border-radius: 0 var(--pbi-radius) var(--pbi-radius) 0;
+  padding: 8px 12px;
+}
+.insight-item.warn { border-left-color: var(--pbi-red); }
+.insight-item.good { border-left-color: var(--pbi-green); }
+.insight-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--pbi-text3); margin-bottom: 3px; }
+.insight-text  { font-size: 12px; color: var(--pbi-text); line-height: 1.4; }
+
+/* ── GAUGE ARC ──────────────────────────────────────── */
+.gauge-wrap { display: flex; flex-direction: column; align-items: center; }
+
+/* ── WATERFALL ──────────────────────────────────────── */
+.wf-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.wf-label { font-size: 11px; color: var(--pbi-text); min-width: 90px; }
+.wf-bar-area { flex: 1; position: relative; height: 16px; }
+.wf-bar { position: absolute; top: 2px; height: 12px; border-radius: 2px; transition: width 1s, left 0.5s; }
+.wf-val { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--pbi-text2); min-width: 48px; text-align: right; }
+
+/* ── TREEMAP-STYLE GRID ─────────────────────────────── */
+.treemap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; }
+.tree-cell {
+  padding: 8px;
+  border-radius: var(--pbi-radius);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 60px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.tree-cell:hover { opacity: 0.85; }
+.tree-name { font-size: 10px; font-weight: 700; color: #fff; }
+.tree-val  { font-size: 16px; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif; }
+.tree-sub  { font-size: 9px; color: rgba(255,255,255,0.75); margin-top: 1px; }
+
+/* Sparkline in KPI */
+.sparkline { height: 30px; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="pbi-header">
+  <div class="pbi-logo">
+    <svg class="pbi-logo-icon" viewBox="0 0 28 28" fill="none">
+      <rect width="28" height="28" rx="4" fill="#F2C811"/>
+      <rect x="4" y="14" width="5" height="10" rx="1" fill="#0078D4"/>
+      <rect x="11" y="9" width="5" height="15" rx="1" fill="#0078D4"/>
+      <rect x="18" y="4" width="5" height="20" rx="1" fill="#0078D4"/>
+    </svg>
+    <span class="pbi-logo-text">Power BI</span>
+  </div>
+  <div class="pbi-header-divider"></div>
+  <span class="pbi-report-name">AtliQ Hotels — Hospitality Analytics</span>
+  <div class="pbi-header-right">
+    <span class="pbi-header-badge">May–Jul 2022</span>
+    <span class="pbi-header-badge">134,590 rows</span>
+    <button class="pbi-share-btn">⤴ Share</button>
+  </div>
+</header>
+
+<!-- PAGE TABS -->
+<nav class="pbi-page-tabs">
+  <button class="pbi-page-tab active" onclick="showPage('overview')">Overview</button>
+  <button class="pbi-page-tab" onclick="showPage('revenue')">Revenue Deep-Dive</button>
+  <button class="pbi-page-tab" onclick="showPage('occupancy')">Occupancy</button>
+  <button class="pbi-page-tab" onclick="showPage('bookings')">Bookings & Status</button>
+  <button class="pbi-page-tab" onclick="showPage('trends')">Trend Analysis</button>
+</nav>
+
+
+<!-- ══════════ PAGE: OVERVIEW ══════════ -->
+<section id="page-overview" class="pbi-canvas active">
+
+  <!-- SLICERS -->
+  <div class="slicer-row">
+    <div class="slicer-card">
+      <div class="slicer-title">Month</div>
+      <div class="slicer-chips">
+        <button class="slicer-chip active" onclick="slicerToggle(this,'month','all')">All</button>
+        <button class="slicer-chip" onclick="slicerToggle(this,'month','May')">May 22</button>
+        <button class="slicer-chip" onclick="slicerToggle(this,'month','Jun')">Jun 22</button>
+        <button class="slicer-chip" onclick="slicerToggle(this,'month','Jul')">Jul 22</button>
+      </div>
+    </div>
+    <div class="slicer-card">
+      <div class="slicer-title">Category</div>
+      <div class="slicer-chips">
+        <button class="slicer-chip active" onclick="slicerToggle(this,'cat','all')">All</button>
+        <button class="slicer-chip" onclick="slicerToggle(this,'cat','Luxury')">Luxury</button>
+        <button class="slicer-chip" onclick="slicerToggle(this,'cat','Business')">Business</button>
+      </div>
+    </div>
+    <div class="slicer-card">
+      <div class="slicer-title">City</div>
+      <div class="slicer-chips">
+        <button class="slicer-chip active" onclick="slicerToggle(this,'city','all')">All</button>
+        <button class="slicer-chip" onclick="slicerToggle(this,'city','Mumbai')">Mumbai</button>
+        <button class="slicer-chip" onclick="slicerToggle(this,'city','Delhi')">Delhi</button>
+        <button class="slicer-chip" onclick="slicerToggle(this,'city','Bangalore')">Bangalore</button>
+        <button class="slicer-chip" onclick="slicerToggle(this,'city','Hyderabad')">Hyderabad</button>
+      </div>
+    </div>
+    <div class="slicer-card">
+      <div class="slicer-title">Day Type</div>
+      <div class="slicer-chips">
+        <button class="slicer-chip active" onclick="slicerToggle(this,'day','all')">All</button>
+        <button class="slicer-chip" onclick="slicerToggle(this,'day','Weekday')">Weekday</button>
+        <button class="slicer-chip" onclick="slicerToggle(this,'day','Weekend')">Weekend</button>
+      </div>
+    </div>
+    <div class="pbi-refresh-info">🔄 Last refreshed: Apr 2026</div>
+  </div>
+
+  <!-- KPI ROW -->
+  <div class="pbi-grid g-kpi5" style="margin-bottom:12px">
+    <div class="vis-card accent-blue">
+      <div class="vis-title">Total Revenue</div>
+      <div class="kpi-inner">
+        <div class="kpi-value" style="color:var(--pbi-blue)">₹1.71B</div>
+        <div class="kpi-label">Revenue Realized</div>
+        <span class="kpi-delta neu">▲ ₹1,708.8M total</span>
+        <div class="kpi-bar-track"><div class="kpi-bar-fill" style="width:100%;background:var(--pbi-blue)"></div></div>
+      </div>
+    </div>
+    <div class="vis-card accent-teal">
+      <div class="vis-title">Total Bookings</div>
+      <div class="kpi-inner">
+        <div class="kpi-value" style="color:var(--pbi-teal)">134.6K</div>
+        <div class="kpi-label">All Transactions</div>
+        <span class="kpi-delta up">▲ ~45K / month</span>
+        <div class="kpi-bar-track"><div class="kpi-bar-fill" style="width:100%;background:var(--pbi-teal)"></div></div>
+      </div>
+    </div>
+    <div class="vis-card accent-yellow">
+      <div class="vis-title">Occupancy Rate</div>
+      <div class="kpi-inner">
+        <div class="kpi-value" style="color:var(--pbi-orange)">57.9%</div>
+        <div class="kpi-label">Successful / Capacity</div>
+        <span class="kpi-delta warn">◆ Stable 3 months</span>
+        <div class="kpi-bar-track"><div class="kpi-bar-fill" style="width:57.9%;background:var(--pbi-yellow)"></div></div>
+      </div>
+    </div>
+    <div class="vis-card accent-red">
+      <div class="vis-title">Cancellation Rate</div>
+      <div class="kpi-inner">
+        <div class="kpi-value" style="color:var(--pbi-red)">24.8%</div>
+        <div class="kpi-label">of All Bookings</div>
+        <span class="kpi-delta down">▼ High — 33,420 cancel</span>
+        <div class="kpi-bar-track"><div class="kpi-bar-fill" style="width:24.8%;background:var(--pbi-red)"></div></div>
+      </div>
+    </div>
+    <div class="vis-card accent-green">
+      <div class="vis-title">Utilised Capacity</div>
+      <div class="kpi-inner">
+        <div class="kpi-value" style="color:var(--pbi-green)">134.7K</div>
+        <div class="kpi-label">of 232.6K total rooms</div>
+        <span class="kpi-delta up">▲ 57.9% utilised</span>
+        <div class="kpi-bar-track"><div class="kpi-bar-fill" style="width:57.9%;background:var(--pbi-green)"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 2: Booking Status Band + Category Donut + City Bar -->
+  <div class="pbi-grid g-3" style="margin-bottom:12px">
+    <div class="vis-card accent-blue">
+      <div class="vis-title">Booking Status Split</div>
+      <div class="status-band" style="margin-bottom:10px">
+        <div class="status-segment" style="flex:70.2;background:var(--pbi-green)">Checked Out 70.2%</div>
+        <div class="status-segment" style="flex:24.8;background:var(--pbi-red)">Cancelled 24.8%</div>
+        <div class="status-segment" style="flex:5;background:var(--pbi-purple)">No Show 5%</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="display:flex;align-items:center;gap:6px;font-size:12px"><span style="width:10px;height:10px;border-radius:2px;background:var(--pbi-green);display:inline-block"></span>Checked Out</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:var(--pbi-green)">94,411</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="display:flex;align-items:center;gap:6px;font-size:12px"><span style="width:10px;height:10px;border-radius:2px;background:var(--pbi-red);display:inline-block"></span>Cancelled</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:var(--pbi-red)">33,420</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="display:flex;align-items:center;gap:6px;font-size:12px"><span style="width:10px;height:10px;border-radius:2px;background:var(--pbi-purple);display:inline-block"></span>No Show</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:var(--pbi-purple)">6,759</span>
+        </div>
+      </div>
+      <canvas id="statusDonut" style="height:120px;margin-top:12px" width="100%"></canvas>
+    </div>
+
+    <div class="vis-card accent-purple">
+      <div class="vis-title">Revenue by Category</div>
+      <div class="donut-wrap">
+        <canvas id="catDonut" width="140" height="140" style="flex-shrink:0"></canvas>
+        <div class="donut-legend">
+          <div class="legend-row"><div class="legend-swatch" style="background:var(--pbi-purple)"></div><div class="legend-text">Luxury</div><div class="legend-pct">61.6%</div></div>
+          <div class="legend-row"><div class="legend-swatch" style="background:var(--pbi-blue)"></div><div class="legend-text">Business</div><div class="legend-pct">38.4%</div></div>
+          <div style="border-top:1px solid var(--pbi-border);padding-top:8px;margin-top:4px">
+            <div style="font-size:11px;color:var(--pbi-text3)">Luxury</div>
+            <div style="font-size:18px;font-weight:800;color:var(--pbi-purple);font-family:'Outfit',sans-serif">₹1.05B</div>
+            <div style="font-size:11px;color:var(--pbi-text3);margin-top:6px">Business</div>
+            <div style="font-size:18px;font-weight:800;color:var(--pbi-blue);font-family:'Outfit',sans-serif">₹656M</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vis-card accent-teal">
+      <div class="vis-title">Revenue by City</div>
+      <div class="hbar-list">
+        <div class="hbar-row"><div class="hbar-name">Mumbai</div><div class="hbar-track"><div class="hbar-fill" style="width:100%;background:var(--pbi-blue)"></div></div><div class="hbar-val">₹669M</div></div>
+        <div class="hbar-row"><div class="hbar-name">Bangalore</div><div class="hbar-track"><div class="hbar-fill" style="width:62.8%;background:var(--pbi-blue)"></div></div><div class="hbar-val">₹420M</div></div>
+        <div class="hbar-row"><div class="hbar-name">Hyderabad</div><div class="hbar-track"><div class="hbar-fill" style="width:48.6%;background:var(--pbi-blue)"></div></div><div class="hbar-val">₹325M</div></div>
+        <div class="hbar-row"><div class="hbar-name">Delhi</div><div class="hbar-track"><div class="hbar-fill" style="width:44%;background:var(--pbi-blue)"></div></div><div class="hbar-val">₹295M</div></div>
+      </div>
+      <canvas id="cityBar" style="height:130px;margin-top:14px" width="100%"></canvas>
+    </div>
+  </div>
+
+  <!-- ROW 3: Hotel table + Room class + Week trend -->
+  <div class="pbi-grid g-3">
+    <div class="vis-card accent-navy col2">
+      <div class="vis-title">Hotel Performance Matrix <span class="vis-title-more">See all →</span></div>
+      <table class="pbi-table">
+        <thead>
+          <tr>
+            <th>#</th><th>Property</th><th>City</th><th>Type</th>
+            <th style="text-align:right">Revenue</th><th style="text-align:right">Bookings</th><th style="text-align:right">Share</th><th>Rating</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="rank-num">01</td><td><strong>Atliq Exotica</strong></td><td>Mumbai</td><td><span class="badge badge-lux">Luxury</span></td><td class="num">₹320M</td><td class="num">23,441</td><td class="num">18.7%</td><td><span class="badge badge-top">Top</span></td></tr>
+          <tr><td class="rank-num">02</td><td><strong>Atliq Palace</strong></td><td>Mumbai</td><td><span class="badge badge-lux">Luxury</span></td><td class="num">₹304M</td><td class="num">23,625</td><td class="num">17.8%</td><td><span class="badge badge-top">Top</span></td></tr>
+          <tr><td class="rank-num">03</td><td><strong>Atliq City</strong></td><td>Delhi</td><td><span class="badge badge-biz">Business</span></td><td class="num">₹286M</td><td class="num">23,323</td><td class="num">16.7%</td><td><span class="badge badge-top">Good</span></td></tr>
+          <tr><td class="rank-num">04</td><td><strong>Atliq Blu</strong></td><td>Delhi</td><td><span class="badge badge-lux">Luxury</span></td><td class="num">₹261M</td><td class="num">21,795</td><td class="num">15.3%</td><td><span class="badge badge-top">Good</span></td></tr>
+          <tr><td class="rank-num">05</td><td><strong>Atliq Bay</strong></td><td>Mumbai</td><td><span class="badge badge-biz">Business</span></td><td class="num">₹260M</td><td class="num">21,389</td><td class="num">15.2%</td><td><span class="badge badge-avg">Avg</span></td></tr>
+          <tr><td class="rank-num">06</td><td><strong>Atliq Grands</strong></td><td>Delhi</td><td><span class="badge badge-lux">Luxury</span></td><td class="num">₹212M</td><td class="num">17,035</td><td class="num">12.4%</td><td><span class="badge badge-avg">Avg</span></td></tr>
+          <tr><td class="rank-num">07</td><td><strong>Atliq Seasons</strong></td><td>Mumbai</td><td><span class="badge badge-biz">Business</span></td><td class="num">₹66M</td><td class="num">3,982</td><td class="num">3.9%</td><td><span class="badge badge-low">Low</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="vis-card accent-orange">
+      <div class="vis-title">Room Class Revenue</div>
+      <canvas id="roomDonut" style="height:140px" width="100%"></canvas>
+      <div class="hbar-list" style="margin-top:10px">
+        <div class="hbar-row"><div class="hbar-name">Elite</div><div class="hbar-track"><div class="hbar-fill" style="width:100%;background:var(--pbi-purple)"></div></div><div class="hbar-val">₹560M</div></div>
+        <div class="hbar-row"><div class="hbar-name">Premium</div><div class="hbar-track"><div class="hbar-fill" style="width:82.5%;background:var(--pbi-blue)"></div></div><div class="hbar-val">₹462M</div></div>
+        <div class="hbar-row"><div class="hbar-name">Presidential</div><div class="hbar-track"><div class="hbar-fill" style="width:67.3%;background:var(--pbi-teal)"></div></div><div class="hbar-val">₹377M</div></div>
+        <div class="hbar-row"><div class="hbar-name">Standard</div><div class="hbar-track"><div class="hbar-fill" style="width:55.3%;background:var(--pbi-orange)"></div></div><div class="hbar-val">₹310M</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════ PAGE: REVENUE ══════════ -->
+<section id="page-revenue" class="pbi-canvas">
+  <div class="pbi-grid g-kpi4" style="margin-bottom:12px">
+    <div class="vis-card accent-blue"><div class="vis-title">Total Revenue</div><div class="kpi-value" style="color:var(--pbi-blue)">₹1.71B</div><div class="kpi-label">May–Jul 2022</div><span class="kpi-delta neu">All platforms combined</span></div>
+    <div class="vis-card accent-teal"><div class="vis-title">Weekday Revenue</div><div class="kpi-value" style="color:var(--pbi-teal)">₹1.07B</div><div class="kpi-label">62.6% of total</div><span class="kpi-delta up">▲ Stronger mid-week</span></div>
+    <div class="vis-card accent-orange"><div class="vis-title">Weekend Revenue</div><div class="kpi-value" style="color:var(--pbi-orange)">₹639M</div><div class="kpi-label">37.4% of total</div><span class="kpi-delta warn">Weekend gap opportunity</span></div>
+    <div class="vis-card accent-yellow"><div class="vis-title">Avg Weekly Revenue</div><div class="kpi-value" style="color:var(--pbi-orange)">₹122M</div><div class="kpi-label">per week avg (excl. W32)</div><span class="kpi-delta neu">Consistent throughput</span></div>
+  </div>
+
+  <div class="pbi-grid g-2" style="margin-bottom:12px">
+    <div class="vis-card accent-blue">
+      <div class="vis-title">Monthly Revenue Comparison</div>
+      <canvas id="monthRevBar" style="height:220px" width="100%"></canvas>
+    </div>
+    <div class="vis-card accent-teal">
+      <div class="vis-title">Weekday vs Weekend — Revenue & Bookings</div>
+      <canvas id="daytypeBar" style="height:220px" width="100%"></canvas>
+    </div>
+  </div>
+
+  <div class="pbi-grid g-2">
+    <div class="vis-card accent-yellow">
+      <div class="vis-title">Revenue by Booking Platform</div>
+      <canvas id="platBar" style="height:260px" width="100%"></canvas>
+    </div>
+    <div class="vis-card accent-purple">
+      <div class="vis-title">Hotel Revenue Waterfall</div>
+      <canvas id="hotelRevBar" style="height:260px" width="100%"></canvas>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════ PAGE: OCCUPANCY ══════════ -->
+<section id="page-occupancy" class="pbi-canvas">
+  <div class="pbi-grid g-kpi4" style="margin-bottom:12px">
+    <div class="vis-card accent-yellow"><div class="vis-title">Overall Occupancy</div><div class="kpi-value" style="color:var(--pbi-orange)">57.9%</div><div class="kpi-label">successful / capacity</div><div class="kpi-bar-track"><div class="kpi-bar-fill" style="width:57.9%;background:var(--pbi-yellow)"></div></div></div>
+    <div class="vis-card accent-green"><div class="vis-title">May Occupancy</div><div class="kpi-value" style="color:var(--pbi-green)">58.5%</div><div class="kpi-label">Highest month</div><span class="kpi-delta up">▲ Peak period</span></div>
+    <div class="vis-card accent-blue"><div class="vis-title">Jun Occupancy</div><div class="kpi-value" style="color:var(--pbi-blue)">57.6%</div><div class="kpi-label">Stable</div><span class="kpi-delta neu">→ Consistent</span></div>
+    <div class="vis-card accent-orange"><div class="vis-title">Jul Occupancy</div><div class="kpi-value" style="color:var(--pbi-orange)">57.5%</div><div class="kpi-label">Slight dip</div><span class="kpi-delta warn">▼ Minor decline</span></div>
+  </div>
+
+  <div class="pbi-grid g-2" style="margin-bottom:12px">
+    <div class="vis-card accent-yellow col2">
+      <div class="vis-title">Weekly Occupancy % Trend — All 14 Weeks</div>
+      <canvas id="occTrendLine" style="height:220px" width="100%"></canvas>
+    </div>
+  </div>
+
+  <div class="pbi-grid g-3">
+    <div class="vis-card accent-green">
+      <div class="vis-title">Capacity Utilisation</div>
+      <canvas id="gaugeChart" style="height:160px" width="100%"></canvas>
+      <div style="display:flex;justify-content:space-around;margin-top:8px">
+        <div style="text-align:center"><div style="font-size:18px;font-weight:800;color:var(--pbi-green);font-family:'Outfit',sans-serif">134.7K</div><div style="font-size:10px;color:var(--pbi-text3)">Utilised</div></div>
+        <div style="text-align:center"><div style="font-size:18px;font-weight:800;color:var(--pbi-text2);font-family:'Outfit',sans-serif">97.9K</div><div style="font-size:10px;color:var(--pbi-text3)">Unused</div></div>
+      </div>
+    </div>
+    <div class="vis-card accent-blue">
+      <div class="vis-title">Weekday vs Weekend Occupancy</div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span style="color:var(--pbi-text2)">Weekday average</span><span style="font-weight:700;color:var(--pbi-blue);font-family:'JetBrains Mono',monospace">62.3%</span></div>
+          <div class="kpi-bar-track" style="height:10px"><div class="kpi-bar-fill" style="width:62.3%;background:var(--pbi-blue);height:100%"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span style="color:var(--pbi-text2)">Weekend average</span><span style="font-weight:700;color:var(--pbi-orange);font-family:'JetBrains Mono',monospace">51.1%</span></div>
+          <div class="kpi-bar-track" style="height:10px"><div class="kpi-bar-fill" style="width:51.1%;background:var(--pbi-orange);height:100%"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span style="color:var(--pbi-text2)">Peak week (W32)</span><span style="font-weight:700;color:var(--pbi-green);font-family:'JetBrains Mono',monospace">65.3%</span></div>
+          <div class="kpi-bar-track" style="height:10px"><div class="kpi-bar-fill" style="width:65.3%;background:var(--pbi-green);height:100%"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span style="color:var(--pbi-text2)">Low week (W26)</span><span style="font-weight:700;color:var(--pbi-red);font-family:'JetBrains Mono',monospace">51.0%</span></div>
+          <div class="kpi-bar-track" style="height:10px"><div class="kpi-bar-fill" style="width:51%;background:var(--pbi-red);height:100%"></div></div>
+        </div>
+      </div>
+      <canvas id="occMiniBar" style="height:80px;margin-top:14px" width="100%"></canvas>
+    </div>
+    <div class="vis-card accent-teal">
+      <div class="vis-title">Monthly Occupancy</div>
+      <canvas id="monthOccBar" style="height:180px" width="100%"></canvas>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════ PAGE: BOOKINGS ══════════ -->
+<section id="page-bookings" class="pbi-canvas">
+  <div class="pbi-grid g-kpi4" style="margin-bottom:12px">
+    <div class="vis-card accent-blue"><div class="vis-title">Total Bookings</div><div class="kpi-value" style="color:var(--pbi-blue)">134.6K</div><div class="kpi-label">All status combined</div></div>
+    <div class="vis-card accent-green"><div class="vis-title">Checked Out</div><div class="kpi-value" style="color:var(--pbi-green)">94,411</div><div class="kpi-label">Successful stays · 70.2%</div><span class="kpi-delta up">▲ Majority outcome</span></div>
+    <div class="vis-card accent-red"><div class="vis-title">Cancelled</div><div class="kpi-value" style="color:var(--pbi-red)">33,420</div><div class="kpi-label">Cancellations · 24.8%</div><span class="kpi-delta down">▼ High risk metric</span></div>
+    <div class="vis-card accent-purple"><div class="vis-title">No Show</div><div class="kpi-value" style="color:var(--pbi-purple)">6,759</div><div class="kpi-label">No show · 5.0%</div><span class="kpi-delta warn">Revenue retained</span></div>
+  </div>
+
+  <div class="pbi-grid g-2" style="margin-bottom:12px">
+    <div class="vis-card accent-green">
+      <div class="vis-title">Booking Status — Donut Breakdown</div>
+      <div style="display:flex;align-items:center;gap:20px">
+        <canvas id="statusDonut2" width="180" height="180" style="flex-shrink:0"></canvas>
+        <div style="flex:1">
+          <div style="background:var(--pbi-green-light);border-radius:var(--pbi-radius);padding:8px 12px;margin-bottom:6px">
+            <div style="font-size:11px;color:var(--pbi-green);font-weight:600">Checked Out — 70.2%</div>
+            <div style="font-size:18px;font-weight:800;color:var(--pbi-green);font-family:'Outfit',sans-serif">94,411</div>
+          </div>
+          <div style="background:var(--pbi-red-light);border-radius:var(--pbi-radius);padding:8px 12px;margin-bottom:6px">
+            <div style="font-size:11px;color:var(--pbi-red);font-weight:600">Cancelled — 24.8%</div>
+            <div style="font-size:18px;font-weight:800;color:var(--pbi-red);font-family:'Outfit',sans-serif">33,420</div>
+          </div>
+          <div style="background:var(--pbi-purple-light);border-radius:var(--pbi-radius);padding:8px 12px">
+            <div style="font-size:11px;color:var(--pbi-purple);font-weight:600">No Show — 5.0%</div>
+            <div style="font-size:18px;font-weight:800;color:var(--pbi-purple);font-family:'Outfit',sans-serif">6,759</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="vis-card accent-blue">
+      <div class="vis-title">Bookings by Platform</div>
+      <canvas id="platBkBar" style="height:240px" width="100%"></canvas>
+    </div>
+  </div>
+
+  <div class="vis-card accent-navy">
+    <div class="vis-title">Full Hotel Bookings & Status Summary</div>
+    <table class="pbi-table">
+      <thead>
+        <tr><th>#</th><th>Hotel</th><th>City</th><th>Category</th><th style="text-align:right">Revenue</th><th style="text-align:right">Bookings</th><th style="text-align:right">Rev Share</th><th style="text-align:right">Bk Share</th><th>Performance</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="rank-num">01</td><td><strong>Atliq Exotica</strong></td><td>Mumbai</td><td><span class="badge badge-lux">Luxury</span></td><td class="num">₹320M</td><td class="num">23,441</td><td class="num">18.7%</td><td class="num">17.4%</td><td><span class="badge badge-top">Excellent</span></td></tr>
+        <tr><td class="rank-num">02</td><td><strong>Atliq Palace</strong></td><td>Mumbai</td><td><span class="badge badge-lux">Luxury</span></td><td class="num">₹304M</td><td class="num">23,625</td><td class="num">17.8%</td><td class="num">17.6%</td><td><span class="badge badge-top">Excellent</span></td></tr>
+        <tr><td class="rank-num">03</td><td><strong>Atliq City</strong></td><td>Delhi</td><td><span class="badge badge-biz">Business</span></td><td class="num">₹286M</td><td class="num">23,323</td><td class="num">16.7%</td><td class="num">17.3%</td><td><span class="badge badge-top">Good</span></td></tr>
+        <tr><td class="rank-num">04</td><td><strong>Atliq Blu</strong></td><td>Delhi</td><td><span class="badge badge-lux">Luxury</span></td><td class="num">₹261M</td><td class="num">21,795</td><td class="num">15.3%</td><td class="num">16.2%</td><td><span class="badge badge-top">Good</span></td></tr>
+        <tr><td class="rank-num">05</td><td><strong>Atliq Bay</strong></td><td>Mumbai</td><td><span class="badge badge-biz">Business</span></td><td class="num">₹260M</td><td class="num">21,389</td><td class="num">15.2%</td><td class="num">15.9%</td><td><span class="badge badge-avg">Average</span></td></tr>
+        <tr><td class="rank-num">06</td><td><strong>Atliq Grands</strong></td><td>Delhi</td><td><span class="badge badge-lux">Luxury</span></td><td class="num">₹212M</td><td class="num">17,035</td><td class="num">12.4%</td><td class="num">12.7%</td><td><span class="badge badge-avg">Average</span></td></tr>
+        <tr><td class="rank-num">07</td><td><strong>Atliq Seasons</strong></td><td>Mumbai</td><td><span class="badge badge-biz">Business</span></td><td class="num">₹66M</td><td class="num">3,982</td><td class="num">3.9%</td><td class="num">3.0%</td><td><span class="badge badge-low">Needs Attention</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+<!-- ══════════ PAGE: TRENDS ══════════ -->
+<section id="page-trends" class="pbi-canvas">
+  <div class="vis-card accent-blue" style="margin-bottom:12px">
+    <div class="vis-title">Weekly Revenue Trend — All 14 Weeks (May–Jul 2022)</div>
+    <canvas id="weekRevLine" style="height:220px" width="100%"></canvas>
+  </div>
+
+  <div class="pbi-grid g-2" style="margin-bottom:12px">
+    <div class="vis-card accent-yellow">
+      <div class="vis-title">Weekly Occupancy % Trend</div>
+      <canvas id="weekOccLine" style="height:200px" width="100%"></canvas>
+    </div>
+    <div class="vis-card accent-teal">
+      <div class="vis-title">Weekly Bookings Trend</div>
+      <canvas id="weekBkBar" style="height:200px" width="100%"></canvas>
+    </div>
+  </div>
+
+  <div class="pbi-grid g-3">
+    <div class="vis-card accent-red">
+      <div class="vis-title">Revenue Pattern Insight</div>
+      <div style="background:var(--pbi-bg);border-radius:var(--pbi-radius);padding:12px;border-left:4px solid var(--pbi-blue);margin-bottom:8px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--pbi-text3);margin-bottom:4px">Alternating Weeks</div>
+        <div style="font-size:12px;line-height:1.5;color:var(--pbi-text)">Revenue peaks ~₹139M on full weekday-heavy weeks vs ~₹115M on weekend-heavy weeks. W32 partial at ₹21M.</div>
+      </div>
+      <div style="background:var(--pbi-bg);border-radius:var(--pbi-radius);padding:12px;border-left:4px solid var(--pbi-red)">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--pbi-text3);margin-bottom:4px">Revenue at Risk</div>
+        <div style="font-size:12px;line-height:1.5;color:var(--pbi-text)">24.8% cancellation = ~₹564M potential revenue lost. Requires deposit or stricter cancellation policy.</div>
+      </div>
+    </div>
+    <div class="vis-card accent-green">
+      <div class="vis-title">Occupancy Insight</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="background:var(--pbi-green-light);padding:10px;border-radius:var(--pbi-radius)">
+          <div style="font-size:10px;font-weight:700;color:var(--pbi-green);text-transform:uppercase;margin-bottom:2px">Weekday Strength</div>
+          <div style="font-size:20px;font-weight:800;color:var(--pbi-green);font-family:'Outfit',sans-serif">62.3%</div>
+          <div style="font-size:11px;color:var(--pbi-text2)">avg occupancy on weekday weeks</div>
+        </div>
+        <div style="background:var(--pbi-orange-light);padding:10px;border-radius:var(--pbi-radius)">
+          <div style="font-size:10px;font-weight:700;color:var(--pbi-orange);text-transform:uppercase;margin-bottom:2px">Weekend Gap</div>
+          <div style="font-size:20px;font-weight:800;color:var(--pbi-orange);font-family:'Outfit',sans-serif">51.1%</div>
+          <div style="font-size:11px;color:var(--pbi-text2)">avg occupancy on weekend weeks — 11.2pp gap</div>
+        </div>
+      </div>
+    </div>
+    <div class="vis-card accent-purple">
+      <div class="vis-title">Monthly Performance Summary</div>
+      <table class="pbi-table">
+        <thead><tr><th>Month</th><th style="text-align:right">Revenue</th><th style="text-align:right">Bookings</th><th style="text-align:right">Occ %</th></tr></thead>
+        <tbody>
+          <tr><td><strong>May 22</strong></td><td class="num">₹582M</td><td class="num">45,882</td><td class="num" style="color:var(--pbi-green)">58.5%</td></tr>
+          <tr><td><strong>Jun 22</strong></td><td class="num">₹554M</td><td class="num">43,683</td><td class="num" style="color:var(--pbi-blue)">57.6%</td></tr>
+          <tr><td><strong>Jul 22</strong></td><td class="num">₹573M</td><td class="num">45,025</td><td class="num" style="color:var(--pbi-orange)">57.5%</td></tr>
+          <tr style="background:var(--pbi-blue-pale)"><td><strong>Total</strong></td><td class="num" style="font-weight:700">₹1.71B</td><td class="num" style="font-weight:700">134,590</td><td class="num" style="font-weight:700;color:var(--pbi-blue)">57.9%</td></tr>
+        </tbody>
+      </table>
+      <div class="insight-strip" style="margin-top:10px">
+        <div class="insight-item good"><div class="insight-label">Best month</div><div class="insight-text">May 22 — highest revenue ₹582M</div></div>
+        <div class="insight-item"><div class="insight-label">Trend</div><div class="insight-text">Stable — max 1% occ swing</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<script>
+// ── DATA ────────────────────────────────────────────────
+const WEEKS    = ["W19","W20","W21","W22","W23","W24","W25","W26","W27","W28","W29","W30","W31","W32"];
+const W_REV    = [138,139,115,139,116,140,139,114,140,139,140,115,115,21];
+const W_OCC    = [62.0,61.9,51.1,61.8,51.4,62.4,61.8,51.0,61.9,61.8,62.3,51.0,51.0,65.3];
+const W_BK     = [10965,10958,9042,10934,9089,11041,10943,9017,10962,10929,11018,9020,9021,1651];
+const MONTHS   = ["May 22","Jun 22","Jul 22"];
+const M_REV    = [582,554,573];
+const M_OCC    = [58.5,57.6,57.5];
+const CITIES   = ["Mumbai","Bangalore","Hyderabad","Delhi"];
+const C_REV    = [669,420,325,295];
+const HOTELS   = ["Atliq Exotica","Atliq Palace","Atliq City","Atliq Blu","Atliq Bay","Atliq Grands","Atliq Seasons"];
+const H_REV    = [320,304,286,261,260,212,66];
+const ROOMS    = ["Elite","Premium","Presidential","Standard"];
+const R_REV    = [560,462,377,310];
+const PLATS    = ["Others","MakeYourTrip","LogTrip","Direct Online","Tripster","Journey","Direct Offline"];
+const P_REV    = [699,341,188,169,123,103,86];
+const P_BK     = [55066,26898,14756,13379,9630,8106,6755];
+
+// ── CHART DEFAULTS ───────────────────────────────────────
+Chart.defaults.font.family = "'Outfit','Segoe UI',sans-serif";
+Chart.defaults.font.size   = 11;
+Chart.defaults.color       = '#605E5C';
+Chart.defaults.borderColor = '#E1DFDD';
+
+const BLUE   = '#0078D4';
+const TEAL   = '#008272';
+const GREEN  = '#107C10';
+const RED    = '#D13438';
+const ORANGE = '#CA5010';
+const PURPLE = '#5C2D91';
+const NAVY   = '#003B6F';
+const GOLD   = '#FFB900';
+
+const baseOpt = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: '#fff',
+      titleColor: '#201F1E',
+      bodyColor: '#605E5C',
+      borderColor: '#E1DFDD',
+      borderWidth: 1,
+      padding: 10,
+      cornerRadius: 4,
+      boxShadow: '0 4px 16px rgba(0,0,0,0.12)'
+    }
+  },
+  scales: {
+    x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { color: '#A19F9D' } },
+    y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { color: '#A19F9D' } }
+  }
+};
+
+// Helper
+function rgba(hex, a) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+// ── OVERVIEW PAGE CHARTS ─────────────────────────────────
+
+new Chart(document.getElementById('statusDonut'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Checked Out','Cancelled','No Show'],
+    datasets: [{ data: [94411, 33420, 6759], backgroundColor: [GREEN, RED, PURPLE], borderWidth: 3, borderColor: '#fff', hoverOffset: 4 }]
+  },
+  options: { cutout: '68%', plugins: { legend: { display: false }, tooltip: { backgroundColor:'#fff', borderColor:'#E1DFDD', borderWidth:1, titleColor:'#201F1E', bodyColor:'#605E5C' } }, responsive: true, maintainAspectRatio: false }
+});
+
+new Chart(document.getElementById('catDonut'), {
+  type: 'doughnut',
+  data: { labels: ['Luxury','Business'], datasets: [{ data: [1053,656], backgroundColor: [PURPLE, BLUE], borderWidth: 3, borderColor: '#fff', hoverOffset: 4 }] },
+  options: { cutout: '70%', plugins: { legend:{ display:false }, tooltip:{ backgroundColor:'#fff',borderColor:'#E1DFDD',borderWidth:1 } }, responsive: false }
+});
+
+new Chart(document.getElementById('cityBar'), {
+  type: 'bar',
+  data: { labels: CITIES, datasets: [{ data: C_REV, backgroundColor: [BLUE, rgba(BLUE,0.75), rgba(BLUE,0.55), rgba(BLUE,0.38)], borderRadius: 4, borderWidth: 0 }] },
+  options: { ...baseOpt, plugins:{ legend:{display:false} }, scales:{ x:{grid:{display:false},ticks:{color:'#A19F9D',font:{size:10}}}, y:{display:false} } }
+});
+
+new Chart(document.getElementById('roomDonut'), {
+  type: 'doughnut',
+  data: { labels: ROOMS, datasets: [{ data: R_REV, backgroundColor: [PURPLE, BLUE, TEAL, ORANGE], borderWidth: 3, borderColor: '#fff', hoverOffset: 4 }] },
+  options: { cutout: '58%', plugins:{ legend:{ display:true, position:'bottom', labels:{color:'#605E5C',font:{size:10},padding:8,boxWidth:8,usePointStyle:true} }, tooltip:{backgroundColor:'#fff',borderColor:'#E1DFDD',borderWidth:1} }, responsive:true, maintainAspectRatio:false }
+});
+
+// ── REVENUE PAGE ─────────────────────────────────────────
+
+new Chart(document.getElementById('monthRevBar'), {
+  type: 'bar',
+  data: { labels: MONTHS, datasets:[{ label:'Revenue (₹M)', data: M_REV, backgroundColor:[BLUE, TEAL, rgba(BLUE,0.7)], borderRadius:6, borderWidth:0 }] },
+  options: { ...baseOpt, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false},ticks:{color:'#A19F9D'}}, y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#A19F9D',callback:v=>`₹${v}M`},min:520} } }
+});
+
+new Chart(document.getElementById('daytypeBar'), {
+  type: 'bar',
+  data: {
+    labels: ['Weekday','Weekend'],
+    datasets: [
+      { label:'Revenue (₹M)', data:[1070,639], backgroundColor:rgba(BLUE,0.8), borderColor:BLUE, borderWidth:1.5, borderRadius:6, yAxisID:'y' },
+      { label:'Bookings', data:[84365,50225], backgroundColor:rgba(TEAL,0.7), borderColor:TEAL, borderWidth:1.5, borderRadius:6, yAxisID:'y1' }
+    ]
+  },
+  options: { ...baseOpt, scales:{
+    x:{grid:{display:false},ticks:{color:'#A19F9D'}},
+    y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#A19F9D',callback:v=>`₹${v}M`}},
+    y1:{position:'right',grid:{display:false},ticks:{color:TEAL}}
+  }}
+});
+
+new Chart(document.getElementById('platBar'), {
+  type: 'bar',
+  data: { labels: PLATS, datasets:[{ data: P_REV, backgroundColor: PLATS.map((_,i)=>rgba(GOLD,0.9-i*0.1)), borderRadius:4, borderWidth:0 }] },
+  options: { ...baseOpt, indexAxis:'y', plugins:{legend:{display:false}}, scales:{ x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#A19F9D',callback:v=>`₹${v}M`}}, y:{grid:{display:false},ticks:{color:'#201F1E',font:{size:11}}} } }
+});
+
+new Chart(document.getElementById('hotelRevBar'), {
+  type: 'bar',
+  data: { labels: HOTELS.map(h=>h.replace('Atliq ','')), datasets:[{ data:H_REV, backgroundColor:H_REV.map(v=>v>250?NAVY:v>150?BLUE:rgba(BLUE,0.5)), borderRadius:6, borderWidth:0 }] },
+  options: { ...baseOpt, indexAxis:'y', plugins:{legend:{display:false}}, scales:{ x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#A19F9D',callback:v=>`₹${v}M`}}, y:{grid:{display:false},ticks:{color:'#201F1E',font:{size:11}}} } }
+});
+
+// ── OCCUPANCY PAGE ───────────────────────────────────────
+
+new Chart(document.getElementById('occTrendLine'), {
+  type: 'line',
+  data: { labels: WEEKS, datasets:[{
+    label:'Occupancy %', data: W_OCC,
+    borderColor: GOLD, pointBackgroundColor: W_OCC.map(v=>v>60?GREEN:RED),
+    pointRadius: 5, pointHoverRadius: 7,
+    tension: 0.35, fill: true, backgroundColor: rgba(GOLD, 0.08), borderWidth: 2.5
+  }]},
+  options: { ...baseOpt, plugins:{
+    legend:{display:false},
+    tooltip:{backgroundColor:'#fff',borderColor:'#E1DFDD',borderWidth:1,titleColor:'#201F1E',bodyColor:'#605E5C'},
+    annotation: {}
+  }, scales:{ x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#A19F9D'}}, y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#A19F9D',callback:v=>`${v}%`},min:45,max:70} } }
+});
+
+new Chart(document.getElementById('gaugeChart'), {
+  type: 'doughnut',
+  data: { labels:['Utilised','Unused'], datasets:[{ data:[57.9,42.1], backgroundColor:[GREEN,'#E1DFDD'], borderWidth:0, hoverOffset:0 }] },
+  options: {
+    rotation: -90, circumference: 180, cutout: '72%',
+    plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw}%`},backgroundColor:'#fff',borderColor:'#E1DFDD',borderWidth:1} },
+    responsive:true, maintainAspectRatio:false
+  }
+});
+
+new Chart(document.getElementById('occMiniBar'), {
+  type: 'bar',
+  data: { labels: WEEKS, datasets:[{ data:W_OCC, backgroundColor:W_OCC.map(v=>v>60?rgba(GREEN,0.7):rgba(ORANGE,0.6)), borderRadius:3, borderWidth:0 }] },
+  options: { ...baseOpt, plugins:{legend:{display:false}}, scales:{ x:{display:false}, y:{display:false,min:40} } }
+});
+
+new Chart(document.getElementById('monthOccBar'), {
+  type: 'bar',
+  data: { labels: MONTHS, datasets:[{ data:M_OCC, backgroundColor:[GREEN,BLUE,rgba(ORANGE,0.8)], borderRadius:8, borderWidth:0 }] },
+  options: { ...baseOpt, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false},ticks:{color:'#A19F9D'}}, y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#A19F9D',callback:v=>`${v}%`},min:56,max:60} } }
+});
+
+// ── BOOKINGS PAGE ────────────────────────────────────────
+
+new Chart(document.getElementById('statusDonut2'), {
+  type: 'doughnut',
+  data: { labels:['Checked Out','Cancelled','No Show'], datasets:[{ data:[94411,33420,6759], backgroundColor:[GREEN,RED,PURPLE], borderWidth:4, borderColor:'#fff', hoverOffset:4 }] },
+  options: { cutout:'65%', plugins:{legend:{display:false},tooltip:{backgroundColor:'#fff',borderColor:'#E1DFDD',borderWidth:1}}, responsive:false }
+});
+
+new Chart(document.getElementById('platBkBar'), {
+  type: 'bar',
+  data: { labels: PLATS, datasets:[{ label:'Bookings', data:P_BK, backgroundColor:rgba(PURPLE,0.75), borderColor:PURPLE, borderWidth:1.5, borderRadius:4 }] },
+  options: { ...baseOpt, indexAxis:'y', plugins:{legend:{display:false}}, scales:{ x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#A19F9D'}}, y:{grid:{display:false},ticks:{color:'#201F1E',font:{size:10}}} } }
+});
+
+// ── TRENDS PAGE ──────────────────────────────────────────
+
+new Chart(document.getElementById('weekRevLine'), {
+  type: 'line',
+  data: { labels: WEEKS, datasets:[{
+    label:'Revenue (₹M)', data: W_REV,
+    borderColor: BLUE, pointBackgroundColor: BLUE,
+    pointRadius: 4, pointHoverRadius: 6,
+    tension: 0.35, fill: true, backgroundColor: rgba(BLUE, 0.07), borderWidth: 2.5
+  }]},
+  options: { ...baseOpt, plugins:{legend:{display:false}}, scales:{ x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#A19F9D'}}, y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#A19F9D',callback:v=>`₹${v}M`}} } }
+});
+
+new Chart(document.getElementById('weekOccLine'), {
+  type: 'line',
+  data: { labels: WEEKS, datasets:[{
+    label:'Occupancy %', data: W_OCC,
+    borderColor: ORANGE, pointBackgroundColor: ORANGE,
+    pointRadius: 4, tension: 0.35, fill: true, backgroundColor: rgba(GOLD, 0.08), borderWidth: 2
+  }]},
+  options: { ...baseOpt, plugins:{legend:{display:false}}, scales:{ x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#A19F9D'}}, y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#A19F9D',callback:v=>`${v}%`},min:45,max:70} } }
+});
+
+new Chart(document.getElementById('weekBkBar'), {
+  type: 'bar',
+  data: { labels: WEEKS, datasets:[{ label:'Bookings', data:W_BK, backgroundColor:rgba(TEAL,0.65), borderColor:TEAL, borderWidth:1.5, borderRadius:4 }] },
+  options: { ...baseOpt, plugins:{legend:{display:false}}, scales:{ x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#A19F9D'}}, y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#A19F9D'}} } }
+});
+
+// ── PAGE SWITCHING ───────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.pbi-canvas').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.pbi-page-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ── SLICER LOGIC ─────────────────────────────────────────
+function slicerToggle(el, group, value) {
+  const parent = el.closest('.slicer-card').querySelector('.slicer-chips');
+  parent.querySelectorAll('.slicer-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+</script>
+</body>
+</html>
